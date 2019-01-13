@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.go.ad.youtubeMapper">
+
+	<select id="selectNextPageToken" resultType="java.lang.String"
+		parameterType="java.lang.String">
+		<![CDATA[
+		SELECT DISTINCT NEXTPAGE_TOKEN 			AS nextPageToken
+		FROM CATEGORY_INFO
+		WHERE CATEGORY = #{categoryName}
+		]]>
+	</select>
+	
+	<select id ="selectCategoryList" resultType = "com.go.ad.vo.CategoryInfoVO">
+	<![CDATA[
+	SELECT
+				   ID 						AS id,
+				   CATEGORY			AS category,
+				   VIDEO_COUNT  AS videoCount,
+				   NEXTPAGE_TOKEN as nextPageToken
+	FROM CATEGORY_INFO
+	WHERE DEL_YN = 'N'
+	]]>
+	</select>
+	
+	<select id = "retrieveVideo" resultType="com.go.ad.vo.VideoInfoVO" parameterType="map">
+	<![CDATA[
+		SELECT ID									AS id,
+					   TITLE							AS title,
+					   CHANNELTITLE			AS channelTitle,
+					   VIEWCOUNT				AS viewCount,
+					   CATEGORY					AS category, 
+					   VIEW_FLAG					AS viewFlag
+	FROM VIDEO_INFO
+	WHERE 1=1
+	]]>
+  <choose>
+    <when test="!keyword.equals('') and  keyword != null">
+      AND TITLE LIKE CONCAT('%',#{keyword},'%')
+    </when>
+    <when test="!categoryName.equals('') and  categoryName!= null">
+      AND CATEGORY = #{categoryName}
+    </when>
+  </choose>
+  <choose>
+  	<when test="categoryName.equals('')">
+  	ORDER BY VIEW_FLAG DESC , ID
+  	</when>
+  	<otherwise>
+  	ORDER BY VIEW_FLAG DESC, VIEWCOUNT DESC
+  	</otherwise>
+  </choose> 
+   LIMIT 0, 30
+
+	</select>
+
+	<insert id="insertVideo" parameterType="java.util.List">
+		<![CDATA[
+   	       INSERT INTO
+	       VIDEO_INFO
+          (TITLE, VIDEO_ID, THUMBNAILS, CHANNELTITLE, VIEWCOUNT, CATEGORY)
+	       VALUES
+	     ]]>
+	       <foreach collection="list"  item="item" separator="," >
+	        (#{item.title}, #{item.videoId}, #{item.thumbnail}, #{item.channelTitle}, #{item.viewCount}, #{item.category})
+	       </foreach>
+	       ON DUPLICATE KEY UPDATE VIEWCOUNT = VALUES(VIEWCOUNT)
+	</insert>
+
+
+	<insert id="insertCategory" parameterType="com.go.ad.vo.ValueTransferVO">
+	<![CDATA[
+		INSERT INTO CATEGORY_INFO
+			(CATEGORY, VIDEO_COUNT, NEXTPAGE_TOKEN)
+		VALUES
+			(#{category}, #{videoCount}, #{nextPageToken})
+		ON DUPLICATE KEY UPDATE
+		     NEXTPAGE_TOKEN = #{nextPageToken}
+			,VIDEO_COUNT = #{videoCount}
+			,DEL_YN = 'N'
+	       ]]>
+	</insert>
+	
+	<delete id = "deleteVideo" parameterType="java.lang.String">
+	<![CDATA[
+		DELETE FROM VIDEO_INFO
+		WHERE ID = #{id}
+ 	]]>
+	</delete>
+
+	<update id = "deleteCategory" parameterType="java.lang.String">
+	<![CDATA[
+		UPDATE CATEGORY_INFO
+		SET DEL_YN = 'Y'
+		WHERE id= #{id}
+ 	]]>	
+	</update>
+
+	<update id ="videoView" parameterType="map">
+	<![CDATA[
+		UPDATE VIDEO_INFO
+		SET VIEW_FLAG = #{flag}
+		WHERE ID = #{id}
+ 	]]>	
+	</update>
+	
+	<select id = "detailPage" parameterType="java.lang.String" resultType="com.go.ad.vo.VideoInfoVO">
+	<![CDATA[
+		SELECT ID										AS id
+				 	 , TITLE								AS title
+				 	 , VIDEO_ID						AS videoId
+				 	 , THUMBNAILS					AS thumbnail
+				 	 , CHANNELTITLE				AS channelTitle
+				 	 , VIEWCOUNT					AS viewCount
+				 	 , CATEGORY						AS category	
+				 	 , VIEW_FLAG					AS viewFlag
+ 		FROM VIDEO_INFO
+ 		WHERE ID = #{id}
+ 		]]>
+	</select>
+	
+	<select id = "add" resultType="com.go.ad.vo.VideoInfoVO" parameterType="map">
+	<![CDATA[
+		SELECT ID									AS id,
+					   TITLE							AS title,
+					   CHANNELTITLE			AS channelTitle,
+					   VIEWCOUNT				AS viewCount,
+					   CATEGORY					AS category, 
+					   VIEW_FLAG					AS viewFlag
+	FROM VIDEO_INFO
+	WHERE 1=1
+	]]>
+  <choose>
+    <when test="!keyword.equals('') and  keyword != null">
+      AND TITLE LIKE CONCAT('%',#{keyword},'%')
+    </when>
+    <when test="!categoryName.equals('') and  categoryName!= null">
+      AND CATEGORY = #{categoryName}
+    </when>
+  </choose> 
+   <choose>
+  	<when test="categoryName.equals('')">
+  	ORDER BY VIEW_FLAG DESC , ID
+  	</when>
+  	<otherwise>
+  	ORDER BY VIEW_FLAG DESC, VIEWCOUNT DESC
+  	</otherwise>
+  </choose>
+	LIMIT ${index}, 30
+	</select>
+	
+	<insert id="manualInsertVideo" parameterType="map">
+	<![CDATA[
+		INSERT INTO VIDEO_INFO
+				(TITLE, VIDEO_ID, THUMBNAILS, CHANNELTITLE, VIEWCOUNT, CATEGORY)
+		VALUES
+				(#{videoTitle}, #{videoId}, #{thumbnail},#{channelTitle},#{viewCount},#{category})
+        ON DUPLICATE KEY UPDATE 
+      		  TITLE = #{videoTitle}
+ 	         ,VIDEO_ID = #{videoId}
+      		 ,THUMBNAILS = #{thumbnail}
+      		 ,CHANNELTITLE = #{channelTitle}
+      		 ,VIEWCOUNT = #{viewCount}
+      		 ,CATEGORY = #{category}
+	       ]]>
+
+	</insert>
+	
+	<insert id="insertMember" parameterType="map">
+		INSERT INTO USER_INFO (userID, password)
+		VALUES(#{userID}, #{password})
+	</insert>
+	
+	<select id="checkMember" parameterType="map" resultType="int">
+		SELECT count(*)  
+		FROM USER_INFO
+		WHERE ID = #{userID}
+		AND PASSWORD = #{password}
+	</select>
+	<select id="getId" parameterType="String" resultType="int">
+		SELECT id
+		FROM USER_INFO
+		WHERE userID = #{userId}
+	</select>
+
+</mapper>

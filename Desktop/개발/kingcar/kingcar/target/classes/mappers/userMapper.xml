@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.go.kr.userMapper">
+
+<select id = "itemCategoryList"  resultType="java.lang.String">
+<![CDATA[
+	SELECT category
+	FROM CATEGORY_INFO
+]]>
+</select>
+
+	<select id = "mainVideoList" resultType="com.go.ad.vo.VideoInfoVO" parameterType="map">
+	<![CDATA[
+		SELECT ID									AS id,
+					   TITLE							    AS title,
+					   VIDEO_ID						AS videoId,
+					   THUMBNAILS			    AS thumbnail,
+					   CHANNELTITLE			AS channelTitle,
+					   VIEWCOUNT				AS viewCount,
+					   CATEGORY					AS category, 
+					   VIEW_FLAG					AS viewFlag
+	FROM VIDEO_INFO
+	WHERE 1=1
+	]]>
+	<if test="!categoryName.equals('') and  categoryName != null">
+	AND CATEGORY = #{categoryName}
+	</if>
+    ORDER BY VIEW_FLAG DESC, VIEWCOUNT DESC 
+    LIMIT 0,12
+	</select>
+	
+	<select id = "searchList" resultType="com.go.ad.vo.VideoInfoVO" parameterType="map">
+	<![CDATA[
+		SELECT ID									AS id,
+					   TITLE							    AS title,
+					   VIDEO_ID						AS videoId,
+					   THUMBNAILS			    AS thumbnail,
+					   CHANNELTITLE			AS channelTitle,
+					   VIEWCOUNT				AS viewCount,
+					   CATEGORY					AS category, 
+					   VIEW_FLAG					AS viewFlag
+	FROM VIDEO_INFO
+	WHERE 1=1
+	]]>
+	<if test="!category.equals('') and  category != null">
+	AND CATEGORY = #{category}
+	</if>
+	<if test="!keyword.equals('') and  keyword!= null">
+	AND TITLE LIKE CONCAT('%',#{keyword},'%')
+	</if>
+    ORDER BY VIEW_FLAG DESC, VIEWCOUNT DESC 
+    LIMIT ${index},30
+	</select>
+	  
+</mapper>

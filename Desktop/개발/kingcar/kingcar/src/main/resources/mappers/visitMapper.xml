@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.go.vi.visitMapper">
+
+<insert id = "setVisitTotalCount" >
+<![CDATA[
+INSERT INTO VISIT VALUES (SUBSTR(NOW(),1,10))
+]]>
+</insert>
+
+<select id="getVisitTotalCount" resultType="java.lang.Integer" >
+<![CDATA[
+SELECT COUNT(*) FROM VISIT
+]]>
+</select>
+
+<select id="getVisitTodayCount" resultType="java.lang.Integer">
+<![CDATA[
+SELECT COUNT(*) FROM VISIT
+WHERE V_DATE = SUBSTR(NOW(),1,10)
+]]>
+</select>
+
+</mapper>
